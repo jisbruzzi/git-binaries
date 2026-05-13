@@ -1,0 +1,36 @@
+name: Build Static Git
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libssl-dev libcurl4-openssl-dev libexpat-dev gettext zlib1g-dev
+
+      - name: Download git source
+        run: |
+          curl -L https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.44.0.tar.gz | tar xz
+
+      - name: Build static git
+        run: |
+          cd git-2.44.0
+          make configure
+          ./configure \
+            LDFLAGS="-static" \
+            --without-tcltk \
+            --without-python \
+            NO_OPENSSL=1 \
+            NO_CURL=1
+          make -j$(nproc) NO_OPENSSL=1 NO_CURL=1
+          strip git
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-static-linux-amd64
+          path: git-2.44.0/git
