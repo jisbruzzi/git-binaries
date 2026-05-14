@@ -45,10 +45,48 @@ jobs:
             NO_EXPAT=1 \
             REMOTE_CURL_PRIMARY=git-remote-https \
             REMOTE_CURL_ALIASES="git-remote-http git-remote-ftp git-remote-ftps"
-          # git-remote-https is a symlink to git-remote-http in some builds, resolve it
+          # Resolve symlink if needed
           if [ -L git-remote-https ]; then
             cp --remove-destination $(readlink git-remote-https) git-remote-https
           fi
           strip git
-          ls -la git-remote-* || echo "No git-remote-* binaries found"
-          file git-remote-* 2>/dev/null || true
+          strip git-remote-https 2>/dev/null || (strip git-remote-http && cp git-remote-http git-remote-https)
+          ls -la git git-remote-https
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-static-linux-amd64
+          path: |
+            git-2.44.0/git
+            git-2.44.0/git-remote-https
+
+      - name: Create tag
+        id: tag
+        run: |
+          TAG="git-2.44.0-static-$(date +'%Y%m%d%H%M%S')"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Static Git ${{ steps.tag.outputs.tag }}
+          body: |
+            Statically linked git 2.44.0 for Linux x86_64.
+            Includes `git` and `git-remote-https` for HTTPS remote support.
+
+            ## Installation
+```bash
+            mkdir -p ~/.local/bin
+            cp git ~/.local/bin/git
+            cp git-remote-https ~/.local/bin/git-remote-https
+            chmod +x ~/.local/bin/git ~/.local/bin/git-remote-https
+```
+          files: |
+            git-2.44.0/git
+            git-2.44.0/git-remote-https
