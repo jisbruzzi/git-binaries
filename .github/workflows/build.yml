@@ -42,6 +42,13 @@ jobs:
             --with-curl
           make -j$(nproc) \
             CURL_LDFLAGS="$(curl-config --static-libs)" \
-            NO_EXPAT=1
+            NO_EXPAT=1 \
+            REMOTE_CURL_PRIMARY=git-remote-https \
+            REMOTE_CURL_ALIASES="git-remote-http git-remote-ftp git-remote-ftps"
+          # git-remote-https is a symlink to git-remote-http in some builds, resolve it
+          if [ -L git-remote-https ]; then
+            cp --remove-destination $(readlink git-remote-https) git-remote-https
+          fi
           strip git
-          strip git-remote-https
+          ls -la git-remote-* || echo "No git-remote-* binaries found"
+          file git-remote-* 2>/dev/null || true
