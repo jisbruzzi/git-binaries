@@ -76,17 +76,7 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: Static Git ${{ steps.tag.outputs.tag }}
-          body: |
-            Statically linked git 2.44.0 for Linux x86_64.
-            Includes `git` and `git-remote-https` for HTTPS remote support.
-
-            ## Installation
-```bash
-            mkdir -p ~/.local/bin
-            cp git ~/.local/bin/git
-            cp git-remote-https ~/.local/bin/git-remote-https
-            chmod +x ~/.local/bin/git ~/.local/bin/git-remote-https
-```
+          body: "Statically linked git 2.44.0 for Linux x86_64. Includes git and git-remote-https for HTTPS remote support."
           files: |
             git-2.44.0/git
             git-2.44.0/git-remote-https
