@@ -45,5 +45,3 @@ jobs:
             NO_EXPAT=1
           strip git
           strip git-remote-https
-
-      -
